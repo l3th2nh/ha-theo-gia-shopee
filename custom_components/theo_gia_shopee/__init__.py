@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "theo_gia_shopee"
 PANEL_URL = "/theo_gia_shopee/panel.js"
-PANEL_VER = "3"  # tăng mỗi lần sửa panel để chống cache trình duyệt
+PANEL_VER = "4"  # tăng mỗi lần sửa panel để chống cache trình duyệt
 PANEL_URL_V = f"{PANEL_URL}?v={PANEL_VER}"
 # Đường dẫn NGẮN: /shopee. Gõ tay được, đánh dấu trang được, và đọc ra là hiểu.
 PANEL_PATH = "shopee"

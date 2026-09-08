@@ -1,7 +1,7 @@
 {
   "domain": "theo_gia_shopee",
   "name": "Theo giá Shopee",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "documentation": "https://github.com/l3th2nh/ha-theo-gia-shopee",
   "issue_tracker": "https://github.com/l3th2nh/ha-theo-gia-shopee/issues",
   "dependencies": [

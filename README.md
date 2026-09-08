@@ -88,6 +88,33 @@ không có lỗi nào cả — đúng biểu hiện "không thấy gì".
 Xong rồi thì panel **Theo giá Shopee** hiện trên sidebar, địa chỉ **`/shopee`**
 (gõ thẳng vào trình duyệt cũng được).
 
+### Panel có gì
+
+**Danh sách** — mỗi sản phẩm một thẻ, **tên phủ cả bề ngang** rồi mới tới giá.
+Bảy cột trên một hàng ngang thì không đọc nổi trên điện thoại. Thẻ hiện giá hiện
+tại · giá gốc gạch ngang · % thay đổi · thấp nhất · cao nhất · đọc lúc nào, kèm
+nhãn *đáy* / *hết hàng* / *mất kết nối*. Món giảm mạnh nhất lên đầu.
+
+**Chi tiết** (bấm vào thẻ) — biểu đồ giá 30 ngày và bảng **những lần giá thật sự
+đổi**. Recorder ghi cả những lượt đọc ra đúng giá cũ; một bảng toàn dòng giống
+nhau thì chẳng nói được gì, nên panel lọc bớt.
+
+Lịch sử lấy từ **recorder của Home Assistant**, không phải hỏi ngược Extora —
+dữ liệu đã ở đây rồi, dựng thêm một kho thứ hai là tự chuốc chuyện hai kho lệch
+nhau.
+
+**Thêm** — dán link Shopee, chọn nhịp và ngưỡng báo. Lệnh đi **ngược chiều** về
+Extora qua MQTT (`extora/shopee/lenh`); Extora bóc mã sản phẩm, gắn tài khoản
+đang đăng nhập và **đọc giá lần đầu ngay**, rồi món hàng hiện ra ở tab Danh sách
+sau khoảng một phút.
+
+> Cùng một broker, không mở thêm cửa nào: ai vào được broker thì gửi được lệnh —
+> đúng bằng mức tin cậy của chính Home Assistant.
+>
+> Extora chỉ tự gắn tài khoản khi có **đúng một** tài khoản đang đăng nhập cho
+> miền ấy. Nhiều tài khoản thì nó từ chối và bảo thêm trong app, vì đoán hộ ở
+> đây là gắn nhầm rồi theo dõi bằng một tài khoản không phải cái bạn định dùng.
+
 ### Panel không hiện — dò theo thứ tự
 
 | Kiểm | Nếu không đạt |
