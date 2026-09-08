@@ -101,8 +101,30 @@ Xong rồi thì panel **Theo giá Shopee** hiện trên sidebar, địa chỉ **
 
 ## 3. Thông báo về điện thoại
 
-Panel chỉ để **xem**. Muốn được báo thì dùng automation của HA — Extora không
-gửi thông báo, nó chỉ đẩy state đúng và kịp.
+**Không cần viết automation.** Chọn một lần trong giao diện:
+
+**Settings → Devices & Services → Theo giá Shopee → Configure**
+- ✅ **Bật thông báo**
+- **Gửi qua dịch vụ**: chọn `mobile_app_<điện-thoại-của-bạn>`
+
+Xong. Giá đổi đủ ngưỡng là điện thoại rung, bấm vào là mở thẳng trang Shopee.
+
+### Ngưỡng đặt ở đâu
+
+**Ở Extora, theo từng sản phẩm** — ô *Báo khi đổi ≥ __%* và *chỉ báo khi giảm*.
+Bày lại ở HA là hai chỗ cùng nói về một việc, và sớm muộn hai chỗ ấy sẽ nói khác
+nhau.
+
+Cách chia việc: **Extora quyết ĐÁNG BÁO hay không** (nó biết giá cũ, giá mới, và
+ngưỡng của từng món), rồi phát một bản tin lên `extora/shopee/bao`. **Home
+Assistant lo BÁO CHO AI.**
+
+Bản tin cảnh báo **không retain** — nó là một *sự kiện*, không phải trạng thái.
+Retain thì HA khởi động lại sẽ rung điện thoại vì một lần giảm giá tuần trước.
+
+### Muốn tự viết automation thay vì dùng tuỳ chọn trên
+
+Tắt *Bật thông báo* rồi bám vào thực thể như bình thường:
 
 ```yaml
 automation:
@@ -125,13 +147,22 @@ automation:
 `thay_doi` **mang dấu âm khi giảm**, nên điều kiện viết được thành một dòng
 `below: -10` thay vì phải ghép phần trăm với hướng.
 
-Muốn báo khi chạm đáy lịch sử thì bám vào thuộc tính `dang_o_day`:
+Hoặc bắt thẳng bản tin cảnh báo — nó mang sẵn câu chữ tiếng Việt:
 
 ```yaml
     trigger:
-      - platform: template
-        value_template: "{{ state_attr('sensor.<...>_gia', 'dang_o_day') }}"
+      - platform: mqtt
+        topic: extora/shopee/bao
+    action:
+      - service: notify.mobile_app_dien_thoai_cua_toi
+        data:
+          title: "{{ trigger.payload_json.tieu_de }}"
+          message: "{{ trigger.payload_json.noi_dung }}"
 ```
+
+Trường trong bản tin: `tieu_de` · `noi_dung` · `ten` · `link` · `gia` ·
+`gia_truoc` · `gia_goc` · `thap_nhat` · `dang_o_day` · `huong` · `phan_tram` ·
+`lech` · `luc`.
 
 ---
 

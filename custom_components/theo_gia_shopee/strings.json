@@ -3,11 +3,29 @@
     "step": {
       "user": {
         "title": "Theo giá Shopee",
-        "description": "Thêm panel \"Theo giá Shopee\" — bảng các sản phẩm Extora đang theo dõi kèm giá hiện tại, giá gốc và đáy lịch sử. Không cần khai gì thêm: dữ liệu lấy từ chính các thực thể MQTT đã có trong Home Assistant."
+        "description": "Thêm panel \"Theo giá Shopee\" — bảng các sản phẩm Extora đang theo dõi kèm giá hiện tại, giá gốc và đáy lịch sử. Không cần khai gì thêm: dữ liệu lấy từ chính các thực thể MQTT đã có trong Home Assistant.\n\nThêm xong thì vào Cấu hình để chọn điện thoại nhận thông báo khi giá đổi."
       }
     },
     "abort": {
       "single_instance_allowed": "Đã cấu hình rồi."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Thông báo khi giá đổi",
+        "description": "Extora quyết khi nào ĐÁNG BÁO (ngưỡng % và \"chỉ báo khi giảm\" đặt theo từng sản phẩm, ngay trong Extora). Ở đây chỉ chọn báo cho điện thoại nào.",
+        "data": {
+          "bat_thong_bao": "Bật thông báo",
+          "notify": "Gửi qua dịch vụ"
+        },
+        "data_description": {
+          "notify": "Chọn notify.mobile_app_… ứng với điện thoại đã cài app Home Assistant."
+        }
+      }
+    },
+    "abort": {
+      "khong_co_notify": "Chưa có dịch vụ notify nào. Cài app Home Assistant trên điện thoại và đăng nhập một lần để nó tự tạo notify.mobile_app_…"
     }
   }
 }
