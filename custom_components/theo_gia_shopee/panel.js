@@ -148,10 +148,24 @@ class TheoGiaShopeePanel extends HTMLElement {
     this._su = [];           // lịch sử của món đang xem
     this._bao = null;
     this._dangGui = false;
+    // Giá trị người dùng đang gõ. PHẢI giữ ngoài DOM: mỗi lần vẽ lại là ô nhập
+    // bị thay mới, và cái đang gõ dở biến mất theo.
+    this._form = { link: "", nhip: "60", nguong: "0", giam: false };
+    this._chuKy = null;
   }
 
   set hass(hass) {
     this._hass = hass;
+    // Home Assistant đẩy `hass` mỗi khi BẤT KỲ thực thể nào đổi — vài lần mỗi
+    // giây trong một căn nhà bình thường. Vẽ lại mù quáng theo nó là:
+    //   · chữ vừa gõ trong form biến mất sau một giây
+    //   · ô tick tự bỏ chọn
+    //   · biểu đồ nhấp nháy, cuộn trang nhảy về đầu
+    // Nên chỉ vẽ lại khi thứ ĐANG HIỆN thật sự đổi.
+    if (this._man === "them") return;          // form không đọc gì từ hass
+    const chu = JSON.stringify(this._ds());
+    if (chu === this._chuKy) return;
+    this._chuKy = chu;
     this._ve();
   }
 
@@ -209,9 +223,13 @@ class TheoGiaShopeePanel extends HTMLElement {
     this._ve();
   }
 
-  async _them(form) {
-    const link = form.link.value.trim();
-    if (!link) return;
+  async _them() {
+    const link = (this._form.link || "").trim();
+    if (!link) {
+      this._bao = { loai: "loi", chu: "Chưa dán link sản phẩm." };
+      this._ve();
+      return;
+    }
     this._dangGui = true;
     this._bao = { loai: "", chu: "Đang gửi lệnh sang Extora…" };
     this._ve();
@@ -222,9 +240,9 @@ class TheoGiaShopeePanel extends HTMLElement {
         payload: JSON.stringify({
           lenh: "them",
           link,
-          nhip_phut: Number(form.nhip.value) || 60,
-          nguong_phan_tram: Number(form.nguong.value) || 0,
-          chi_bao_giam: form.giam.checked,
+          nhip_phut: Number(this._form.nhip) || 60,
+          nguong_phan_tram: Number(this._form.nguong) || 0,
+          chi_bao_giam: !!this._form.giam,
         }),
       });
       this._bao = {
@@ -232,7 +250,7 @@ class TheoGiaShopeePanel extends HTMLElement {
         chu: "Đã gửi. Extora sẽ thêm và đọc giá lần đầu — sản phẩm hiện ra ở tab "
           + "Danh sách sau khoảng một phút.",
       };
-      form.link.value = "";
+      this._form.link = "";
     } catch (e) {
       this._bao = { loai: "loi", chu: "Không gửi được: " + e };
     }
@@ -254,7 +272,7 @@ class TheoGiaShopeePanel extends HTMLElement {
     let d = `M ${X(su[0])} ${Y(gs[0])}`;
     for (let i = 1; i < su.length; i++) d += ` L ${X(su[i])} ${Y(gs[i - 1])} L ${X(su[i])} ${Y(gs[i])}`;
     const vung = `${d} L ${X(su[su.length - 1])} ${H - B} L ${X(su[0])} ${H - B} Z`;
-    const iDay = gs.indexOf(min === Math.min(...gs) ? Math.min(...gs) : gs[0]);
+    const iDay = gs.indexOf(Math.min(...gs));   // chấm đánh dấu đáy
     const nh = (v) => (v >= 1e6 ? (v / 1e6).toFixed(1) + "tr" : Math.round(v / 1e3) + "k");
     const ngay = (t) => new Date(t).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
     return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
@@ -334,23 +352,24 @@ class TheoGiaShopeePanel extends HTMLElement {
           gắn tài khoản đang đăng nhập và đọc giá lần đầu ngay.
         </p>
         <label class="f">Link sản phẩm
-          <input id="link" type="url" placeholder="https://shopee.vn/..." />
+          <input id="link" type="url" inputmode="url" placeholder="https://shopee.vn/..."
+                 value="${esc(this._form.link)}" />
         </label>
         <label class="f">Đọc mỗi
           <select id="nhip">
-            <option value="15">15 phút</option>
-            <option value="30">30 phút</option>
-            <option value="60" selected>1 giờ</option>
-            <option value="180">3 giờ</option>
-            <option value="360">6 giờ</option>
-            <option value="1440">1 ngày</option>
+            ${[["15", "15 phút"], ["30", "30 phút"], ["60", "1 giờ"], ["180", "3 giờ"],
+               ["360", "6 giờ"], ["1440", "1 ngày"]].map(([v, n]) =>
+              `<option value="${v}" ${this._form.nhip === v ? "selected" : ""}>${n}</option>`
+            ).join("")}
           </select>
         </label>
         <label class="f">Báo khi đổi ≥ (%)
-          <input id="nguong" type="number" min="0" max="100" step="0.5" value="0" />
+          <input id="nguong" type="number" inputmode="decimal" min="0" max="100" step="0.5"
+                 value="${esc(this._form.nguong)}" />
         </label>
         <label class="f" style="display:flex;align-items:center;gap:9px">
-          <input id="giam" type="checkbox" style="width:18px;height:18px;margin:0" />
+          <input id="giam" type="checkbox" style="width:18px;height:18px;margin:0"
+                 ${this._form.giam ? "checked" : ""} />
           Chỉ báo khi giảm
         </label>
         <button class="nut" id="gui" ${this._dangGui ? "disabled" : ""}>
@@ -445,13 +464,22 @@ class TheoGiaShopeePanel extends HTMLElement {
     const q = r.getElementById("quay");
     if (q) q.onclick = () => { this._chon = null; this._man = "ds"; this._su = []; this._ve(); };
 
+    // Ghi vào state NGAY khi gõ. Đợi tới lúc bấm gửi mới đọc DOM thì chỉ cần
+    // một lần vẽ lại xen vào là mất trắng.
+    const noi = (id, khoa, lay) => {
+      const el = r.getElementById(id);
+      if (!el) return;
+      const ghi = () => { this._form[khoa] = lay(el); };
+      el.oninput = ghi;
+      el.onchange = ghi;
+    };
+    noi("link", "link", (e) => e.value);
+    noi("nhip", "nhip", (e) => e.value);
+    noi("nguong", "nguong", (e) => e.value);
+    noi("giam", "giam", (e) => e.checked);
+
     const g = r.getElementById("gui");
-    if (g) g.onclick = () => this._them({
-      link: r.getElementById("link"),
-      nhip: r.getElementById("nhip"),
-      nguong: r.getElementById("nguong"),
-      giam: r.getElementById("giam"),
-    });
+    if (g) g.onclick = () => this._them();
   }
 }
 
