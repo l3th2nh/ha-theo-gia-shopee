@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Theo giá Shopee",
+        "description": "Thêm panel \"Theo giá Shopee\" — bảng các sản phẩm Extora đang theo dõi kèm giá hiện tại, giá gốc và đáy lịch sử. Không cần khai gì thêm: dữ liệu lấy từ chính các thực thể MQTT đã có trong Home Assistant."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Đã cấu hình rồi."
+    }
+  }
+}
