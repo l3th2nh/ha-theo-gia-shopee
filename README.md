@@ -78,8 +78,24 @@ HACS → ⋮ → **Custom repositories** → thêm `l3th2nh/ha-theo-gia-shopee`,
 Chép `custom_components/theo_gia_shopee/` vào `/config/custom_components/` rồi
 khởi động lại HA.
 
-Sau đó: **Settings → Devices & Services → Add Integration → Theo giá Shopee**.
-Panel **Theo giá Shopee** hiện trên sidebar.
+Sau đó — **bước này hay bị quên**: **Settings → Devices & Services →
+Add Integration** → tìm **Theo giá Shopee** → Add.
+
+HACS chỉ *tải mã nguồn về*. Panel chỉ mọc khi có một **config entry**, tức là
+sau khi bấm *Add Integration*. Tải xong mà không thêm thì sidebar vẫn trống và
+không có lỗi nào cả — đúng biểu hiện "không thấy gì".
+
+Xong rồi thì panel **Theo giá Shopee** hiện trên sidebar, địa chỉ **`/shopee`**
+(gõ thẳng vào trình duyệt cũng được).
+
+### Panel không hiện — dò theo thứ tự
+
+| Kiểm | Nếu không đạt |
+|---|---|
+| **Settings → Devices & Services** có thẻ *Theo giá Shopee* chưa | Chưa → bấm **Add Integration** (bước ở trên) |
+| Tìm trong Add Integration mà không thấy tên | HA chưa nạp mã: kiểm `/config/custom_components/theo_gia_shopee/manifest.json` có tồn tại không, rồi **khởi động lại HA** (không phải *Reload*) |
+| **Settings → System → Logs** có dòng `Đã đăng ký panel 'Theo giá Shopee' tại /shopee` | Có mà sidebar vẫn trống → **Ctrl+Shift+R** (cache trình duyệt), hoặc kiểm mục có bị ẩn trong *hồ sơ người dùng → Sidebar* |
+| Mở thẳng `http://<ip-ha>:8123/shopee` | Ra trang → chỉ là sidebar bị ẩn. Lỗi 404 → tích hợp chưa nạp |
 
 ---
 

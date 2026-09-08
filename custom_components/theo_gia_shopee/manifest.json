@@ -1,12 +1,20 @@
 {
   "domain": "theo_gia_shopee",
   "name": "Theo giá Shopee",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "documentation": "https://github.com/l3th2nh/ha-theo-gia-shopee",
   "issue_tracker": "https://github.com/l3th2nh/ha-theo-gia-shopee/issues",
-  "dependencies": ["http", "frontend", "panel_custom"],
-  "after_dependencies": ["mqtt"],
-  "codeowners": ["@l3th2nh"],
+  "dependencies": [
+    "http",
+    "frontend",
+    "panel_custom"
+  ],
+  "after_dependencies": [
+    "mqtt"
+  ],
+  "codeowners": [
+    "@l3th2nh"
+  ],
   "iot_class": "local_push",
   "config_flow": true
 }
