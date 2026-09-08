@@ -16,6 +16,7 @@
 
 const NGUON = "extora-shopee";
 const TOPIC_LENH = "extora/shopee/lenh";
+const TOPIC_KQ = "extora/shopee/lenh/kq";
 
 const STYLE = `
 <style>
@@ -223,6 +224,44 @@ class TheoGiaShopeePanel extends HTMLElement {
     this._ve();
   }
 
+  /** Nghe phản hồi của Extora cho lệnh vừa gửi.
+   *
+   *  Bản trước báo "Đã gửi" rồi thôi — mà `mqtt.publish` chỉ nói bản tin đã rời
+   *  Home Assistant, không nói Extora có nhận và có làm được không. Link sai,
+   *  chưa có tài khoản đăng nhập, Extora đang tắt: cả ba đều hiện ra y hệt
+   *  "Đã gửi", và người dùng ngồi đợi một sản phẩm không bao giờ tới.
+   */
+  async _ngheKq() {
+    if (this._boKq) return;
+    try {
+      this._boKq = await this._hass.connection.subscribeMessage(
+        (m) => {
+          let d = {};
+          try { d = JSON.parse(m.payload); } catch (e) { return; }
+          if (d.nhan) {
+            this._bao = { loai: "", chu: d.nhac || "Extora đã nhận lệnh, đang xử lý…" };
+          } else {
+            const loi = Array.isArray(d.loi) ? d.loi.join(" · ") : d.loi;
+            this._bao = d.ok
+              ? { loai: "ok", chu: d.nhac || "Đã thêm." }
+              : { loai: "loi", chu: loi || "Extora từ chối lệnh." };
+            this._dangGui = false;
+          }
+          if (this._man === "them") this._ve();
+        },
+        { type: "mqtt/subscribe", topic: TOPIC_KQ },
+      );
+    } catch (e) {
+      // Không nghe được thì vẫn gửi được — chỉ là không biết kết quả.
+      this._boKq = null;
+    }
+  }
+
+  disconnectedCallback() {
+    if (this._boKq) { try { this._boKq(); } catch (e) { /* đã đóng */ } }
+    this._boKq = null;
+  }
+
   async _them() {
     const link = (this._form.link || "").trim();
     if (!link) {
@@ -233,6 +272,20 @@ class TheoGiaShopeePanel extends HTMLElement {
     this._dangGui = true;
     this._bao = { loai: "", chu: "Đang gửi lệnh sang Extora…" };
     this._ve();
+    await this._ngheKq();
+    // Extora im lặng thì cũng phải nói ra. Im lặng mà giao diện vẫn quay là
+    // kiểu hỏng tệ nhất: không ai biết nên đợi thêm hay thử lại.
+    clearTimeout(this._hetGio);
+    this._hetGio = setTimeout(() => {
+      if (!this._dangGui) return;
+      this._dangGui = false;
+      this._bao = {
+        loai: "loi",
+        chu: "Extora không phản hồi sau 20 giây. Kiểm tra: ext Shopee đang chạy chưa, "
+          + "và trong ⚙ Thiết lập đã bật 'đẩy sang Home Assistant' chưa.",
+      };
+      if (this._man === "them") this._ve();
+    }, 20000);
     try {
       await this._hass.callService("mqtt", "publish", {
         topic: TOPIC_LENH,
@@ -245,16 +298,14 @@ class TheoGiaShopeePanel extends HTMLElement {
           chi_bao_giam: !!this._form.giam,
         }),
       });
-      this._bao = {
-        loai: "ok",
-        chu: "Đã gửi. Extora sẽ thêm và đọc giá lần đầu — sản phẩm hiện ra ở tab "
-          + "Danh sách sau khoảng một phút.",
-      };
+      // KHÔNG báo thành công ở đây: `mqtt.publish` chỉ nói bản tin đã rời Home
+      // Assistant. Chờ Extora trả lời (hoặc hết giờ) rồi mới kết luận.
+      this._bao = { loai: "", chu: "Đã gửi, đang chờ Extora trả lời…" };
       this._form.link = "";
     } catch (e) {
+      this._dangGui = false;
       this._bao = { loai: "loi", chu: "Không gửi được: " + e };
     }
-    this._dangGui = false;
     this._ve();
   }
 
